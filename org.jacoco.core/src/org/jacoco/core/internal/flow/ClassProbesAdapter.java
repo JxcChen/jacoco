@@ -12,10 +12,15 @@
  *******************************************************************************/
 package org.jacoco.core.internal.flow;
 
+import org.jacoco.core.ast.DiffMethods;
 import org.jacoco.core.internal.instr.InstrSupport;
+import org.jacoco.core.utils.DiffUtils;
+import org.jacoco.core.utils.ShowBranchDiff;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.AnalyzerAdapter;
+
+import java.io.File;
 
 /**
  * A {@link org.objectweb.asm.ClassVisitor} that calculates probes for every
@@ -62,6 +67,21 @@ public class ClassProbesAdapter extends ClassVisitor
 	public final MethodVisitor visitMethod(final int access, final String name,
 			final String desc, final String signature,
 			final String[] exceptions) {
+
+		File file = new File("");
+		String absolutePath = file.getAbsolutePath();
+		DiffMethods.sourcePath = absolutePath + "\\src\\main\\java\\";
+		String diffStr = "";
+		try {
+			diffStr = DiffUtils.getDiffData(ShowBranchDiff.getBranchDiff());
+			DiffMethods.useDiff =true;
+			boolean methodChanged = DiffMethods.isMethodChanged("", name, desc);
+			if (methodChanged == false)
+				return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		final MethodProbesVisitor methodProbes;
 		final MethodProbesVisitor mv = cv.visitMethod(access, name, desc,
 				signature, exceptions);
